@@ -1,0 +1,193 @@
+7<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Game of life</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
+    <script>
+      let generation = 0;
+
+      var worker = new Worker("worker.js");
+
+      let heightmax = 2000; //document.getElementById('width').value
+      let widthmax = 3000; //document.getElementById('height').value
+      numberofsquares = ((heightmax / 20) * widthmax) / 20;
+
+      let id = 0;
+      for (let height = 0; height < heightmax; height += 20) {
+        for (let width = 0; width < widthmax; width += 20) {
+          const color = "#" + Math.floor(Math.random() * 4).toString(16);
+          id += 1;
+
+          document.write(
+            `<div id='${id}' onclick='divpress(${id})'style="position: absolute; left: ${width}px; top: ${height}px;background-color: black;width: 20px;height: 20px" ></div>`
+          );
+        }
+      }
+      let linechange = widthmax / 20;
+
+      table = [];
+      tochange = [];
+
+      for (let index = 0; index < numberofsquares; index++) {
+        table.push("black");
+      }
+
+      async function divpress(id) {
+        if (await checkcolor(id)) {
+          document.getElementById(id).style.backgroundColor = "black";
+          table.splice(id, 1, "black");
+          console.log(`changed id:${id} with color: black}`);
+          return;
+        } else {
+          document.getElementById(id).style.backgroundColor = "white";
+          table.splice(id, 1, "white");
+          console.log(`changed id:${id} with color: white}`);
+          return;
+        }
+      }
+
+      worker.onmessage = function (event) {
+        console.log(event);
+      };
+
+      async function rule1(id) {
+        //worker.postMessage('Happy Birthday');
+
+        let transfer = [id, linechange, table];
+
+        worker.postMessage(["ostrysex"]);
+
+        /*
+        let adjacent = 0;  
+        let addative = id;
+        try{
+        if(await checkcolor(addative - linechange )) adjacent += 1;
+        if(await checkcolor(addative - linechange - 1 )) adjacent += 1;
+        if(await checkcolor(addative - linechange + 1)) adjacent += 1;
+        if(await checkcolor(addative - 1 )) adjacent += 1;
+        if(await checkcolor(addative + 1)) adjacent += 1;
+        if(await checkcolor(addative + linechange - 1)) adjacent += 1;
+        if(await checkcolor(addative + linechange)) adjacent += 1;
+        if(await checkcolor(addative + linechange + 1)) adjacent += 1;
+        }
+        catch{
+            return;
+        }
+        if(await checkcolor(id)){
+            if(adjacent == 1 || adjacent == 0) return table.splice(id, 1, 'black'); 
+            if(adjacent == 4 || adjacent > 4) return table.splice(id, 1, 'black');  
+            if(adjacent == 2 || adjacent == 3) return;
+        }
+        else{
+            if(adjacent == 3) return table.splice(id, 1, 'white');//3
+        }
+        */
+      }
+
+      async function checkcolor(id) {
+        try {
+          if (document.getElementById(id).style.backgroundColor != "black") {
+            return true;
+          } else {
+            return false;
+          }
+        } catch {}
+      }
+
+      async function setscreen(lastwhite, firstwhite) {
+        for (let index = firstwhite; index < lastwhite; index++) {
+          try {
+            color = table[index];
+            document.getElementById(index).style.backgroundColor = color;
+          } catch {}
+        }
+      }
+
+      let active = false;
+      document.write(`<div class="footer"><text class='text'>Conways game of life</text><br><text class='text'>Generation: </text><text class='text' id='gene'><text class='text' id='persecond'></text> <button class='buttonstart' onclick='start()''><text class='text'>Start</text></button><button class='buttonstop' onclick='stop()''><text class='text'>Stop</text></button><button class='buttonchange' onclick='change()'><text class='text'>Change</text></button>
+    <select name="cars" id="sell">
+    <option value="heart">Heart</option>
+    <option value="glider"> Glider</option>
+    </select></div>`);
+
+      function stop() {
+        return (active = false);
+      }
+
+      async function getAllIndexes(arr, val) {
+        let indexes = [],
+          i = -1;
+        while ((i = arr.indexOf(val, i + 1)) != -1) {
+          let addtaive = i;
+          indexes.push(addtaive - linechange);
+          indexes.push(addtaive - linechange - 1);
+          indexes.push(addtaive - linechange + 1);
+          indexes.push(addtaive - 1);
+          indexes.push(i);
+          indexes.push(addtaive + 1);
+          indexes.push(addtaive + linechange - 1);
+          indexes.push(addtaive + linechange);
+          indexes.push(addtaive + linechange + 1);
+        }
+        return indexes;
+      }
+
+      function change() {
+        type = document.getElementById("sell").value;
+        center = 7750;
+
+        switch (type) {
+          case "heart":
+            table.splice(center + linechange, 1, "white");
+            document.getElementById(center + linechange).style.backgroundColor =
+              "white";
+            table.splice(center - 1, 1, "white");
+            document.getElementById(center - 1).style.backgroundColor = "white";
+            table.splice(center - linechange, 1, "white");
+            document.getElementById(center - linechange).style.backgroundColor =
+              "white";
+            table.splice(center, 1, "white");
+            document.getElementById(center).style.backgroundColor = "white";
+            table.splice(center - linechange + 1, 1, "white");
+            document.getElementById(
+              center - linechange + 1
+            ).style.backgroundColor = "white";
+        }
+      }
+
+      function start() {
+        console.log("starting123");
+        active = true;
+
+        setInterval(async () => {
+          if (active) {
+            generation++;
+            //document.getElementById('gene').textContent = generation;
+            //let lastwhite = table.lastIndexOf('white')
+            //let firstwhite = table.findIndex( el => el == 'white')
+            //firstwhite -= linechange * 1;
+            let indexex = [];
+            indexes = await getAllIndexes(table, "white");
+
+            //lastwhite += linechange * 1;
+
+            let firstwhite = indexes[0];
+            let lastwhite = indexes[indexes.length - 1];
+
+            for (
+              let index = indexes[0];
+              index < indexes[indexes.length - 1];
+              index++
+            ) {
+              await rule1(index);
+            }
+            await setscreen(lastwhite, firstwhite);
+          }
+        }, 15);
+      }
+    </script>
+  </head>
+</html>
